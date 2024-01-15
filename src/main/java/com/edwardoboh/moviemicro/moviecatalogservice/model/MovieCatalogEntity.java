@@ -1,4 +1,4 @@
-package com.edwardoboh.moviemicro.moviecatalogservice.domain;
+package com.edwardoboh.moviemicro.moviecatalogservice.model;
 
 import jakarta.persistence.*;
 
