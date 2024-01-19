@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +25,9 @@ public class MovieCatalogController {
     @Autowired
     RestTemplate restTemplate;
 
+    @Autowired
+    WebClient.Builder webclientBuilder;
+
     @GetMapping("/{userId}")
     public ResponseEntity<List<MovieCatalogEntity>> fetchCatalog(@PathVariable("userId") String userId) {
         List<MovieRatingEntity> movieRatingList;
@@ -35,15 +39,22 @@ public class MovieCatalogController {
                             null,
                             MovieRatingEntity[].class
                     );
-            if (!responseEntity.getStatusCode().is2xxSuccessful()) throw new Exception("Fetching Rating information from Rating Service has failed");
+            if (!responseEntity.getStatusCode().is2xxSuccessful())
+                throw new Exception("Fetching Rating information from Rating Service has failed");
 
             movieRatingList = Arrays.stream(responseEntity.getBody()).toList();
 
             List<MovieCatalogEntity> catalogEntities = movieRatingList.stream().map(rating -> {
-                MovieDetailEntity movieDetail = restTemplate.getForObject(
-                        "http://localhost:3002/detail/"+rating.getMovieId(),
-                        MovieDetailEntity.class
-                );
+//                MovieDetailEntity movieDetail = restTemplate.getForObject(
+//                        "http://localhost:3002/detail/"+rating.getMovieId(),
+//                        MovieDetailEntity.class
+//                );
+                MovieDetailEntity movieDetail = webclientBuilder.build()
+                        .get()
+                        .uri("http://localhost:3002/detail/"+rating.getMovieId())
+                        .retrieve()
+                        .bodyToMono(MovieDetailEntity.class)
+                        .block();
 
                 return new MovieCatalogEntity(
                         movieDetail.getName(),
