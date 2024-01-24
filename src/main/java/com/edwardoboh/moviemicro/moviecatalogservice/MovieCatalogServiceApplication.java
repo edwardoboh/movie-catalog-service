@@ -3,15 +3,18 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+//import org.springframework.cloud.openfeign.EnableFeignClients;
+//import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @SpringBootApplication
-public class  MovieCatalogServiceApplication implements CommandLineRunner {
+//@EnableFeignClients
+public class  MovieCatalogServiceApplication {
 
 	@Bean
-//	@LoadBalanced
+	@LoadBalanced
 	public RestTemplate restTemplate() {
 		return new RestTemplate();
 	}
@@ -24,7 +27,4 @@ public class  MovieCatalogServiceApplication implements CommandLineRunner {
 		SpringApplication.run(MovieCatalogServiceApplication.class, args);
 	}
 
-	public void run(String ...args){
-		System.out.println("Ran Command Line Runner");
-	}
 }

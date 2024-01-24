@@ -6,7 +6,6 @@ import com.edwardoboh.moviemicro.moviecatalogservice.model.MovieRatingEntity;
 import com.edwardoboh.moviemicro.moviecatalogservice.model.UserMovieRatingEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,10 +30,15 @@ public class MovieCatalogController {
     @Autowired
     WebClient.Builder webclientBuilder;
 
+//    @Autowired
+//    DetailService detailService;
+//
+//    @Autowired
+//    RatingService ratingService;
+
     @GetMapping("/{userId}")
     public ResponseEntity<List<MovieCatalogEntity>> fetchCatalog(@PathVariable("userId") String userId) {
         List<MovieRatingEntity> movieRatingList;
-        try{
 //            ResponseEntity<MovieRatingEntity[]> responseEntity =
 //                    restTemplate.exchange(
 //                            "http://localhost:3003/rating/user/" + userId,
@@ -44,28 +48,26 @@ public class MovieCatalogController {
 //                    );
 //            if (!userMovieRating .getStatusCode().is2xxSuccessful())
 //                throw new Exception("Fetching Rating information from Rating Service has failed");
+
             UserMovieRatingEntity userMovieRating = restTemplate
-                    .getForObject("http://localhost:3003/rating/user/" + userId, UserMovieRatingEntity.class);
+                    .getForObject("http://movie-rating-service/rating/user/" + userId, UserMovieRatingEntity.class);
+//        UserMovieRatingEntity userMovieRating = ratingService.getUserMovieRating(userId).getBody();
+        movieRatingList = userMovieRating.ratings();
 
-            movieRatingList = userMovieRating.ratings();
-
-            List<MovieCatalogEntity> catalogEntities = movieRatingList.stream().map(rating -> {
+        List<MovieCatalogEntity> catalogEntities = movieRatingList.stream().map(rating -> {
                 MovieDetailEntity movieDetail = restTemplate.getForObject(
-                        "http://localhost:3002/detail/"+rating.getMovieId(),
+                        "http://movie-details-service/detail/"+rating.getMovieId(),
                         MovieDetailEntity.class
                 );
-                return new MovieCatalogEntity(
-                        movieDetail.getName(),
-                        movieDetail.getDescription(),
-                        rating.getRating()
-                );
-            }).collect(Collectors.toList());
+//            MovieDetailEntity movieDetail = detailService.getMovieDetails(rating.getMovieId()).getBody().get();
+            return new MovieCatalogEntity(
+                    movieDetail.getName(),
+                    movieDetail.getDescription(),
+                    rating.getRating()
+            );
+        }).collect(Collectors.toList());
 
-            return ResponseEntity.ok(catalogEntities);
-        }catch(Exception e) {
-            System.out.println(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return ResponseEntity.ok(catalogEntities);
     }
 
 //    USING WEB CLIENT FOR API CALLS TO OTHER SERVICES
